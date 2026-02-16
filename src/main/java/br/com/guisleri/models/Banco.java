@@ -48,4 +48,35 @@ public class Banco {
         return null;
     }
 
+    public boolean transferirValores(String numeroOrigem, String numeroDestino, double valor) {
+
+        if (valor <= 0) {
+            throw new IllegalArgumentException("Valor da transferência deve ser > 0");
+        }
+
+        ContaBancaria origem = buscarPorNumero(numeroOrigem);
+        if (origem == null) {
+            throw new IllegalArgumentException("Conta origem não encontrada");
+        }
+
+        ContaBancaria destino = buscarPorNumero(numeroDestino);
+        if (destino == null) {
+            throw new IllegalArgumentException("Conta destino não encontrada");
+        }
+
+        if (origem.getNumero().equals(destino.getNumero())) {
+            throw new IllegalArgumentException("Transferência para a mesma conta não é permitida");
+        }
+
+        boolean sacou = origem.sacar(valor);
+        if (!sacou) {
+            return false;
+        }
+
+        destino.depositar(valor);
+
+        return true;
+
+    }
+
 }

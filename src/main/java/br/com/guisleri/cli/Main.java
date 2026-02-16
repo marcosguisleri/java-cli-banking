@@ -10,117 +10,271 @@ public class Main {
         Banco banco = new Banco();
 
         while (true) {
-            IO.println("==================");
-            IO.println("1 - Adicionar conta");
-            IO.println("2 - Selecionar conta");
-            IO.println("3 - Sair");
-            IO.println("==================");
 
-            int opcao;
-            try {
-                opcao = Integer.parseInt(IO.readln("Informe a opção desejada: "));
-            } catch (NumberFormatException e) {
-                IO.println("Digite um número válido.\n");
+            titulo("🏦 JAVA CLI BANKING");
+
+            menu(
+                    "1) ➕ Adicionar conta",
+                    "2) 🎯 Selecionar conta",
+                    "3) 🚪 Sair"
+            );
+
+            int opcao = lerInt("Escolha uma opção: ");
+            pular();
+
+            if (opcao == -1) {
+                IO.println("❌ Entrada inválida. Digite um número.");
+                pular();
                 continue;
             }
 
-            IO.println();
-
             if (opcao < 1 || opcao > 3) {
-                IO.println("Opção inválida.\n");
+                IO.println("❌ Opção inválida.");
+                pular();
                 continue;
             }
 
             if (opcao == 1) {
-                int numeroInt = (int) (Math.random() * 999) + 1;
-                String numero = String.format("%03d", numeroInt);
-
-                String titular = IO.readln("Informe o titular da conta: ");
-                try {
-                    ContaBancaria conta = new ContaBancaria(numero, titular);
-                    banco.adicionarConta(conta);
-                    IO.println("Conta adicionada com sucesso! Número: " + numero + "\n");
-                } catch (RuntimeException e) {
-                    IO.println("Falha ao criar/adicionar conta: " + e.getMessage() + "\n");
-                }
-
+                criarConta(banco);
             } else if (opcao == 2) {
-
-                ContaBancaria[] contas = banco.listarContas();
-                if (contas.length == 0) {
-                    IO.println("Nenhuma conta cadastrada.\n");
-                } else {
-                    for (ContaBancaria c : contas) {
-                        IO.println("Número: " + c.getNumero());
-                        IO.println("Nome Titular: " + c.getTitular());
-                        IO.println();
-                    }
-                }
-
-                String numero = IO.readln("Digite o número da conta para selecionar: ");
-                ContaBancaria achada = banco.buscarPorNumero(numero);
-
-                if (achada == null) {
-                    IO.println("\nConta não encontrada.\n");
-                    continue;
-                }
-
-                IO.println("\nConta selecionada com sucesso!\n");
-
-                while (true) {
-                    IO.println("Número: " + achada.getNumero());
-                    IO.println("Nome Titular: " + achada.getTitular());
-
-                    IO.println("==================");
-                    IO.println("1 - Depositar");
-                    IO.println("2 - Sacar");
-                    IO.println("3 - Consultar Saldo");
-                    IO.println("4 - Cancelar");
-                    IO.println("==================");
-
-                    int op2 = Integer.parseInt(IO.readln("Informe a opção desejada: "));
-
-                    if (op2 < 1 || op2 > 4) {
-                        IO.println("Opção inválida.\n");
-                        continue;
-                    }
-
-                    if (op2 == 1) {
-                        try {
-                            double valor = Double.parseDouble(IO.readln("Informe o valor que deseja depositar: R$ "));
-                            achada.depositar(valor);
-                            IO.println("Depósito realizado!\n");
-                        } catch (NumberFormatException e) {
-                            IO.println("Digite um número válido.\n");
-                        } catch (RuntimeException e) {
-                            IO.println("Depósito falhou: " + e.getMessage() + "\n");
-                        }
-
-                    } else if (op2 == 2) {
-                        try {
-                            double valor = Double.parseDouble(IO.readln("Informe o valor que deseja sacar: R$ "));
-                            boolean ok = achada.sacar(valor);
-                            IO.println(ok ? "Saque realizado!\n" : "Saldo insuficiente.\n");
-                        } catch (NumberFormatException e) {
-                            IO.println("Digite um número válido.\n");
-                        } catch (RuntimeException e) {
-                            IO.println("Saque falhou: " + e.getMessage() + "\n");
-                        }
-
-                    } else if (op2 == 3) {
-                        IO.println("Saldo Atual: R$ " + achada.getSaldo() + "\n");
-
-                    } else {
-                        IO.println("Voltando ao menu principal...\n");
-                        break;
-                    }
-                }
-
+                selecionarConta(banco);
             } else {
+                IO.println("👋 Até mais!");
+                pular();
                 break;
             }
         }
-
     }
 
+    private void criarConta(Banco banco) {
+        titulo("➕ Criar nova conta");
+
+        int numeroInt = (int) (Math.random() * 999) + 1;
+        String numero = String.format("%03d", numeroInt);
+
+        String titular = IO.readln("Titular da conta: ");
+
+        try {
+            ContaBancaria conta = new ContaBancaria(numero, titular);
+            banco.adicionarConta(conta);
+
+            IO.println("Conta criada com sucesso!");
+            IO.println("   Número : " + numero);
+            IO.println("   Titular: " + titular);
+            pular();
+
+        } catch (RuntimeException e) {
+            IO.println("Não foi possível criar a conta: " + e.getMessage());
+            pular();
+        }
+    }
+
+    private void selecionarConta(Banco banco) {
+        listarContas(banco);
+
+        ContaBancaria[] contas = banco.listarContas();
+        if (contas.length == 0) {
+            return;
+        }
+
+        String numero = IO.readln("Digite o número da conta: ");
+
+        ContaBancaria achada;
+        try {
+            achada = banco.buscarPorNumero(numero);
+        } catch (RuntimeException e) {
+            IO.println("Busca falhou: " + e.getMessage());
+            pular();
+            return;
+        }
+
+        if (achada == null) {
+            IO.println("Conta não encontrada.");
+            pular();
+            return;
+        }
+
+        IO.println("Conta selecionada: " + achada.getNumero() + " — " + achada.getTitular());
+        pular();
+
+        menuConta(banco, achada);
+    }
+
+    private void menuConta(Banco banco, ContaBancaria conta) {
+        while (true) {
+
+            titulo("👤 Conta selecionada");
+            IO.println("Número : " + conta.getNumero());
+            IO.println("Titular: " + conta.getTitular());
+            IO.println("Saldo  : R$ " + conta.getSaldo());
+            pular();
+
+            menu(
+                    "1) 💰 Depositar",
+                    "2) 🏧 Sacar",
+                    "3) 📊 Consultar saldo",
+                    "4) 🔁 Transferir",
+                    "5) ↩️  Voltar"
+            );
+
+            int op = lerInt("Escolha uma opção: ");
+            pular();
+
+            if (op == -1) {
+                IO.println("Entrada inválida. Digite um número.");
+                pular();
+                continue;
+            }
+
+            if (op < 1 || op > 5) {
+                IO.println("Opção inválida.");
+                pular();
+                continue;
+            }
+
+            if (op == 1) {
+                depositar(conta);
+            } else if (op == 2) {
+                sacar(conta);
+            } else if (op == 3) {
+                IO.println("📌 Saldo Atual: R$ " + conta.getSaldo());
+                pular();
+            } else if (op == 4) {
+                transferir(banco, conta);
+            } else {
+                IO.println("↩️ Voltando ao menu principal...");
+                pular();
+                break;
+            }
+        }
+    }
+
+    private void listarContas(Banco banco) {
+        ContaBancaria[] contas = banco.listarContas();
+
+        titulo("📋 Contas cadastradas");
+        if (contas.length == 0) {
+            IO.println("ℹ️  Nenhuma conta cadastrada.");
+            pular();
+            return;
+        }
+
+        for (ContaBancaria c : contas) {
+            IO.println("• " + c.getNumero() + " — " + c.getTitular());
+        }
+        pular();
+    }
+
+    private void depositar(ContaBancaria conta) {
+        titulo("💰 Depósito");
+
+        double valor = lerDouble("Valor do depósito (R$): ");
+        if (Double.isNaN(valor)) {
+            IO.println("Digite um valor numérico válido.");
+            pular();
+            return;
+        }
+
+        try {
+            conta.depositar(valor);
+            IO.println("Depósito realizado: R$ " + valor);
+            IO.println("Saldo atual: R$ " + conta.getSaldo());
+            pular();
+        } catch (RuntimeException e) {
+            IO.println("Depósito falhou: " + e.getMessage());
+            pular();
+        }
+    }
+
+    private void sacar(ContaBancaria conta) {
+        titulo("🏧 Saque");
+
+        double valor = lerDouble("Valor do saque (R$): ");
+        if (Double.isNaN(valor)) {
+            IO.println("Digite um valor numérico válido.");
+            pular();
+            return;
+        }
+
+        try {
+            boolean ok = conta.sacar(valor);
+            if (ok) {
+                IO.println("Saque realizado: R$ " + valor);
+                IO.println("📌 Saldo atual: R$ " + conta.getSaldo());
+            } else {
+                IO.println("Saldo insuficiente para sacar R$ " + valor);
+            }
+            pular();
+        } catch (RuntimeException e) {
+            IO.println("Saque falhou: " + e.getMessage());
+            pular();
+        }
+    }
+
+    private void transferir(Banco banco, ContaBancaria origem) {
+        titulo("🔁 Transferência");
+
+        IO.println("Origem: " + origem.getNumero() + " — " + origem.getTitular());
+        pular();
+
+        String destinoNumero = IO.readln("Destino (número): ");
+
+        double valor = lerDouble("Valor (R$): ");
+        if (Double.isNaN(valor)) {
+            IO.println("Digite um valor numérico válido.");
+            pular();
+            return;
+        }
+
+        try {
+            boolean ok = banco.transferirValores(origem.getNumero(), destinoNumero, valor);
+            if (ok) {
+                IO.println("Transferência realizada: R$ " + valor);
+                IO.println("Saldo atual (origem): R$ " + origem.getSaldo());
+            } else {
+                IO.println("Saldo insuficiente para transferir R$ " + valor);
+            }
+            pular();
+        } catch (RuntimeException e) {
+            IO.println("Transferência falhou: " + e.getMessage());
+            pular();
+        }
+    }
+
+    private int lerInt(String prompt) {
+        try {
+            return Integer.parseInt(IO.readln(prompt));
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
+    private double lerDouble(String prompt) {
+        try {
+            return Double.parseDouble(IO.readln(prompt));
+        } catch (NumberFormatException e) {
+            return Double.NaN;
+        }
+    }
+
+    private void pular() {
+        IO.println("");
+    }
+
+    private void linha() {
+        IO.println("----------------------------------------");
+    }
+
+    private void titulo(String t) {
+        linha();
+        IO.println(t);
+        linha();
+    }
+
+    private void menu(String... itens) {
+        for (String item : itens) {
+            IO.println(item);
+        }
+        linha();
+    }
 }
