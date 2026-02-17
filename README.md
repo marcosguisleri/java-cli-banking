@@ -2,7 +2,7 @@
 
 ### *Sistema bancário em linha de comando que vai do zero ao hero em POO*
 
-![Java](https://img.shields.io/badge/Java-25%2B-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
+![Java](https://img.shields.io/badge/Java-17%2B-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
 ![CLI](https://img.shields.io/badge/Interface-CLI-4A90E2?style=for-the-badge&logo=windowsterminal&logoColor=white)
 ![POO](https://img.shields.io/badge/Paradigma-POO-9B59B6?style=for-the-badge&logo=java&logoColor=white)
 ![Maven](https://img.shields.io/badge/Maven-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white)
@@ -17,7 +17,13 @@
 
 ## 🎯 Sobre o Projeto
 
-Um **mini-sistema bancário** desenvolvido em Java puro com interface CLI para praticar conceitos fundamentais de POO: encapsulamento, validações, tratamento de exceções e separação de responsabilidades.
+Um **mini-sistema bancário** desenvolvido em Java puro com interface CLI para praticar conceitos fundamentais de POO: encapsulamento, validações, tratamento de exceções, separação de responsabilidades e gerenciamento de estado.
+
+**Funcionalidades implementadas:**
+- 🏦 Criação e gestão de contas bancárias
+- 💰 Operações: depósito, saque e transferência
+- 📊 Extrato completo com histórico temporal
+- ✅ Validações robustas e tratamento de erros
 
 Ideal para quem está:
 - 📚 Aprendendo Java e POO
@@ -39,9 +45,18 @@ Ideal para quem está:
 ### 💰 Operações Bancárias
 - ✅ **Depósito** com validação de valor
 - ✅ **Saque** com verificação de saldo
+- ✅ **Transferência** entre contas com validações completas
+- ✅ **Extrato** completo com histórico e timestamps
 - ✅ **Consulta** de saldo em tempo real
 - ✅ Tratamento robusto de erros
 - ✅ Mensagens de feedback claras
+
+### 📊 Histórico e Rastreabilidade
+- ✅ Extrato detalhado de todas operações
+- ✅ Timestamp automático (`dd/MM/yyyy HH:mm:ss`)
+- ✅ Registro de depósitos, saques e transferências
+- ✅ Indicação de origem/destino em transferências
+- ✅ Saldo após cada operação
 
 ---
 
@@ -81,7 +96,9 @@ Digite o número da conta: 427
 │ 1. Depositar                        │
 │ 2. Sacar                            │
 │ 3. Consultar saldo                  │
-│ 4. Voltar                           │
+│ 4. Ver extrato                      │
+│ 5. Transferir                       │
+│ 6. Voltar                           │
 └─────────────────────────────────────┘
 ```
 
@@ -97,6 +114,17 @@ Valor para saque: 250
 
 Escolha: 3
 💰 Saldo atual: R$ 750.00
+
+Escolha: 4
+📊 Extrato:
+16/02/2026 14:32:15 DEPOSITO +1000.0 | Saldo: 1000.0
+16/02/2026 14:33:42 SAQUE -250.0 | Saldo: 750.0
+
+Escolha: 5
+Origem: 427 — Maria Silva
+Destino (número): 123
+Valor (R$): 200
+✓ Transferência realizada! Novo saldo: R$ 550.00
 ```
 
 ---
@@ -109,21 +137,31 @@ Escolha: 3
 | **Criar conta** | `numero` deve ser único | Gera novo número automaticamente |
 | **Depositar** | `valor > 0` | Rejeita valores negativos/zero |
 | **Sacar** | `valor > 0` | Lança `IllegalArgumentException` |
-| **Sacar** | `valor <= saldo` | Exibe mensagem de saldo insuficiente |
+| **Sacar** | `valor <= saldo` | Retorna `false` se saldo insuficiente |
+| **Transferir** | `valor > 0` | Lança `IllegalArgumentException` |
+| **Transferir** | Contas existentes | Valida origem e destino |
+| **Transferir** | Contas diferentes | Impede transferência para mesma conta |
+| **Transferir** | `valor <= saldo` | Retorna `false` se saldo insuficiente |
+| **Extrato** | Todas operações | Registra automaticamente com timestamp |
 | **Entrada inválida** | Letras em campos numéricos | Captura `NumberFormatException` |
 
 ### 🔒 Proteções Implementadas
 
 ```java
 // ❌ Não aceito
-depositar(-50);     // IllegalArgumentException
-sacar(0);           // IllegalArgumentException
-sacar(1000);        // Saldo insuficiente (se saldo < 1000)
-new Conta("", ""); // IllegalArgumentException
+depositar(-50);                    // IllegalArgumentException
+sacar(0);                          // IllegalArgumentException
+sacar(1000);                       // Retorna false (saldo insuficiente)
+transferir("001", "002", 0);       // IllegalArgumentException
+transferir("001", "001", 100);     // Mesma conta (IllegalArgumentException)
+transferir("001", "999", 100);     // Conta inexistente (IllegalArgumentException)
+new Conta("", "");                 // IllegalArgumentException
 
 // ✅ Aceito
-depositar(100);
-sacar(50);
+depositar(100);                    // Registra no extrato
+sacar(50);                         // Registra no extrato
+transferir("001", "002", 50);      // Registra em ambas contas
+getExtrato();                      // Retorna histórico completo
 new Conta("123", "João");
 ```
 
@@ -174,7 +212,7 @@ Resultado retorna ao Usuário
 
 ### Pré-requisitos
 
-- ☕ Java 25
+- ☕ Java 17 ou superior
 - 📦 Maven 3.6+
 - 💻 IDE (IntelliJ IDEA recomendado) ou terminal
 
@@ -219,49 +257,61 @@ mvn test  # Valida compilação e configuração
 
 ## 🚀 Roadmap
 
-### 🎯 Fase 1: Operações Avançadas *(próximo)*
+### ✅ Concluído
 
-- [ ] **Transferência entre contas**
-  - Validar contas origem/destino
-  - Verificar saldo suficiente
-  - Atualizar ambas as contas atomicamente
-  
-- [ ] **Extrato de operações**
-  - Histórico de transações por conta
-  - Timestamp com `LocalDateTime`
-  - Exibir últimas N operações
+- [x] **Transferência entre contas**
+  - Transferir valor entre conta origem e destino
+  - Validações: valor > 0, contas existentes, contas diferentes, saldo suficiente
+  - Registro em ambas as contas
 
-### 💾 Fase 2: Persistência
+- [x] **Extrato de operações**
+  - Histórico de depósitos/saques/transferências por conta
+  - Timestamp automático com `LocalDateTime`
+  - Formato: `dd/MM/yyyy HH:mm:ss`
+  - Saldo após cada operação
+
+### 🎯 Próximas Features
+
+#### 💾 Fase 1: Persistência
 
 - [ ] **Salvar dados em JSON (Gson)**
-  - Auto-save ao sair
+  - Auto-save ao sair do sistema
   - Auto-load ao iniciar
   - DTOs para separar domínio de I/O
-  
+
 - [ ] **Camada de infraestrutura**
   - Repository pattern
   - Interface `ContaRepository`
   - Implementação `JsonContaRepository`
+  - Desacoplamento entre domínio e persistência
 
-### 🧪 Fase 3: Qualidade
+#### 🧪 Fase 2: Qualidade e Testes
 
 - [ ] **Testes com JUnit 5**
-  - Testes unitários do domínio
-  - Testes de validações
+  - Testes unitários do domínio (`ContaBancaria`, `Banco`)
+  - Testes de validações e regras de negócio
   - Testes de casos extremos (edge cases)
+  - Testes de transferências e extrato
   - Coverage > 80%
 
-### 🌐 Fase 4: Evolução da Interface
+- [ ] **Melhoria de código**
+  - Formatação de valores monetários
+  - Constantes para mensagens
+  - Enum para tipos de operação
+
+#### 🌐 Fase 3: Evolução da Interface
 
 - [ ] **API REST com Spring Boot**
   - Endpoints RESTful
   - Swagger/OpenAPI
   - DTOs de request/response
-  
+  - Autenticação básica
+
 - [ ] **Interface Gráfica (JavaFX)**
   - Dashboard de contas
   - Gráficos de movimentação
   - Tema moderno
+  - Exportação de extrato em PDF
 
 ---
 
@@ -271,21 +321,31 @@ mvn test  # Valida compilação e configuração
 - ☕ Sintaxe e estruturas de controle
 - 📦 Pacotes e organização
 - 🔧 Maven e gestão de dependências
+- 📅 `LocalDateTime` e formatação de datas
+- 📋 `ArrayList` e manipulação de listas
 
 ### 🏛️ POO Avançado
 - 🎭 Encapsulamento
 - 🧩 Separação de responsabilidades
 - 🏗️ Design orientado a domínio
+- 🔗 Comunicação entre objetos (Banco ↔ ContaBancaria)
 
 ### 🛡️ Validações
 - ✅ Validação de entrada
 - 🚫 Prevenção de estados inválidos
 - ⚠️ Exceções customizadas
+- 🔄 Validações complexas (transferências)
 
 ### 🐛 Tratamento de Erros
 - 🎯 `IllegalArgumentException`
 - 🔢 `NumberFormatException`
 - 📋 Mensagens de feedback claras
+- ↩️ Retornos booleanos para operações
+
+### 📊 Persistência de Estado
+- 💾 Histórico de operações
+- ⏱️ Registro temporal de eventos
+- 🔍 Auditoria de transações
 
 ---
 
