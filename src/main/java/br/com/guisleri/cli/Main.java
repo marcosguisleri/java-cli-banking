@@ -113,8 +113,9 @@ public class Main {
                     "1) 💰 Depositar",
                     "2) 🏧 Sacar",
                     "3) 📊 Consultar saldo",
-                    "4) 🔁 Transferir",
-                    "5) ↩️  Voltar"
+                    "4)    Ver extrato",
+                    "5) 🔁 Transferir",
+                    "6) ↩️  Voltar"
             );
 
             int op = lerInt("Escolha uma opção: ");
@@ -126,7 +127,7 @@ public class Main {
                 continue;
             }
 
-            if (op < 1 || op > 5) {
+            if (op < 1 || op > 6) {
                 IO.println("Opção inválida.");
                 pular();
                 continue;
@@ -140,6 +141,18 @@ public class Main {
                 IO.println("📌 Saldo Atual: R$ " + conta.getSaldo());
                 pular();
             } else if (op == 4) {
+                var extratos = conta.getExtrato();
+
+                if (extratos.isEmpty()) {
+                    IO.println("📭 Nenhuma movimentação registrada.");
+                    pular();
+                } else {
+                    for (String linha : extratos) {
+                        IO.println(linha);
+                    }
+                    pular();
+                }
+            } else if (op == 5) {
                 transferir(banco, conta);
             } else {
                 IO.println("↩️ Voltando ao menu principal...");

@@ -75,6 +75,9 @@ public class Banco {
 
         destino.depositar(valor);
 
+        origem.registrarTransferenciaEnviada(destino.getNumero(), valor);
+        destino.registrarTransferenciaRecebida(origem.getNumero(), valor);
+
         return true;
 
     }
